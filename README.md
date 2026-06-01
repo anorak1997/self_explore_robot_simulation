@@ -41,7 +41,7 @@ ros2 run semantic_nav web_backend
 2. In Terminal 2 run this command
 ```
 ros2 launch bopt_box_filter box_filter.launch.py
-
+```
 <img width="1843" height="1079" alt="image" src="https://github.com/user-attachments/assets/e3758ba1-70e1-4847-b617-9166b225f4bd" />
 <img width="397" height="1100" alt="image" src="https://github.com/user-attachments/assets/8df4b1c0-2c1d-4623-b510-c333380287c9" />
 
@@ -54,4 +54,4 @@ ros2 launch bopt_box_filter box_filter.launch.py
 
 
 5. Use the go button to go to it or casually talk with it to tell it to go. 
-```
+
