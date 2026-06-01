@@ -1,0 +1,34 @@
+# Candidate labels for the CLIP zero-shot classifier (Section 2, real mode).
+#
+# These are OPEN-VOCABULARY: CLIP embeds the `prompt` text and the camera
+# image into one space and picks the closest. Adding a new room type is just
+# adding an entry here - there is no hard-coded logic on label names.
+#
+# `prompt`  - the text CLIP compares the image against (tune for accuracy)
+# `caption` - stored with the place and embedded for text queries later
+
+labels:
+  - label: "bathroom"
+    prompt: "a photo of a bathroom with a toilet and sink"
+    caption: "a bathroom with a toilet and sink"
+  - label: "kitchen"
+    prompt: "a photo of a kitchen with cabinets and a refrigerator"
+    caption: "a kitchen pantry with a fridge and coffee machine"
+  - label: "meeting room"
+    prompt: "a photo of a conference room with a table and chairs"
+    caption: "a meeting room with a long table and a presentation screen"
+  - label: "office"
+    prompt: "a photo of an office with desks and computers"
+    caption: "an open office area with desks and computer monitors"
+  - label: "living room"
+    prompt: "a photo of a living room with a sofa"
+    caption: "a living room with a sofa and a television"
+  - label: "bedroom"
+    prompt: "a photo of a bedroom with a bed"
+    caption: "a bedroom with a bed and a wardrobe"
+  - label: "hallway"
+    prompt: "a photo of an empty hallway or corridor"
+    caption: "a hallway connecting rooms"
+  - label: "entrance"
+    prompt: "a photo of an entrance lobby or doorway"
+    caption: "the building entrance and reception lobby"

@@ -1,0 +1,49 @@
+regions:
+- label: bedroom
+  caption: a bedroom with a bed and nightstands
+  bbox:
+  - -9.5
+  - 1.2
+  - -3.9
+  - 4.5
+  confidence: 0.93
+- label: kitchen
+  caption: a kitchen with a refrigerator, cooking bench and cabinets
+  bbox:
+  - 7.0
+  - -5.8
+  - 10.5
+  - -0.6
+  confidence: 0.92
+- label: dining room
+  caption: a dining room with a table and chairs
+  bbox:
+  - 4.9
+  - -0.7
+  - 6.9
+  - 2.5
+  confidence: 0.91
+- label: living room
+  caption: a living room with a sofa, coffee table and TV
+  bbox:
+  - -1.5
+  - -5.8
+  - 4.5
+  - 0.7
+  confidence: 0.9
+- label: gym
+  caption: a home gym with fitness equipment and dumbbells
+  bbox:
+  - 1.9
+  - 2.8
+  - 5.5
+  - 5.8
+  confidence: 0.88
+- label: study
+  caption: a study room with a reading desk and TV
+  bbox:
+  - -8.5
+  - -2.5
+  - -2.6
+  - 0.9
+  confidence: 0.87

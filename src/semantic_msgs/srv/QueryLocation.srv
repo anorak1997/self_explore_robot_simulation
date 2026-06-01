@@ -1,0 +1,10 @@
+# Request: a free-form natural-language description of a place.
+# This is NOT a fixed keyword list - any text is accepted and matched
+# against stored places by embedding similarity.
+string query
+---
+# Response
+bool found                       # true if a place scored above threshold
+string matched_label             # the caption/label of the best place
+float32 score                    # cosine similarity in [0, 1]
+geometry_msgs/PoseStamped pose   # where to navigate (map frame)

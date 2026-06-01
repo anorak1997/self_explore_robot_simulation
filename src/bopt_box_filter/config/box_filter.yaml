@@ -1,0 +1,15 @@
+/**:
+  ros__parameters:
+    input_topics:
+      fl: /scan
+      fr: /amr0/fr_laser
+    output_topics:
+      fl: /scan/out
+      fr: /amr0/fr_laser_filtered
+    feedback_topic: /amr0/feedback
+    # Each array is [min_x, max_x, min_y, max_y] in that laser's own frame.
+    # Values below are placeholders — tune for the physical robot.
+    fl_default:   [-0.2,  0.2, -0.2,  0.2]
+    fl_triggered: [-0.2,  0.2, -0.2,  0.2]
+    fr_default:   [-0.2,  0.2, -0.2,  0.2]
+    fr_triggered: [-0.2,  0.2, -0.2,  0.2]

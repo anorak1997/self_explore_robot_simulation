@@ -1,0 +1,55 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+Visualization Manager:
+  Global Options:
+    Fixed Frame: map
+    Frame Rate: 30
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Plane Cell Count: 20
+    - Class: rviz_default_plugins/Map
+      Name: Map
+      Enabled: true
+      Topic:
+        Value: /map
+        Durability Policy: Transient Local
+      Color Scheme: map
+    - Class: rviz_default_plugins/MarkerArray
+      Name: RRT Tree
+      Enabled: true
+      Topic:
+        Value: /rrt_tree
+        Durability Policy: Transient Local
+    - Class: rviz_default_plugins/Path
+      Name: RRT Path
+      Enabled: true
+      Topic:
+        Value: /rrt_path
+        Durability Policy: Transient Local
+      Color: 25; 255; 240
+      Line Style: Billboards
+      Line Width: 0.05
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Semantic Places
+      Enabled: true
+      Topic:
+        Value: /semantic/markers
+        Durability Policy: Transient Local
+    - Class: rviz_default_plugins/TF
+      Name: TF
+      Enabled: true
+  Tools:
+    - Class: rviz_default_plugins/SetInitialPose
+      Topic:
+        Value: /initialpose
+    - Class: rviz_default_plugins/SetGoal
+      Topic:
+        Value: /goal_pose
+    - Class: rviz_default_plugins/MoveCamera
+  Views:
+    Current:
+      Class: rviz_default_plugins/TopDownOrtho
+      Scale: 60

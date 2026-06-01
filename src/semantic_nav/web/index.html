@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Semantic Nav · Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0e12; --panel:#12171d; --panel2:#171d25; --line:#222b35;
+    --ink:#e7ecf2; --mut:#7d8a99; --dim:#566270;
+    --teal:#2dd4bf; --amber:#e0a23b; --red:#e2574b; --green:#57c98a;
+    --mono:'IBM Plex Mono',monospace; --disp:'Space Mono',monospace; --body:'Sora',sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--body);
+    display:grid;grid-template-columns:1fr 400px;height:100vh;overflow:hidden}
+  @media(max-width:860px){body{grid-template-columns:1fr;grid-template-rows:44vh 1fr;overflow:auto}}
+
+  .stage{position:relative;background:
+     radial-gradient(120% 120% at 30% 10%,#11161c 0%,#0b0e12 70%);overflow:hidden}
+  #map{width:100%;height:100%;display:block}
+  .stage-tag{position:absolute;top:18px;left:20px;font-family:var(--disp);
+    font-weight:700;font-size:13px;letter-spacing:.18em;color:var(--dim)}
+  .legend{position:absolute;bottom:16px;left:20px;display:flex;gap:14px;
+    font-family:var(--mono);font-size:11px;color:var(--mut);flex-wrap:wrap}
+  .legend i{width:9px;height:9px;border-radius:50%;display:inline-block;
+    margin-right:6px;vertical-align:middle}
+  .mode{position:absolute;top:16px;right:18px;font-family:var(--mono);
+    font-size:10.5px;letter-spacing:.12em;padding:5px 10px;border-radius:20px;
+    border:1px solid var(--line);color:var(--mut);background:#0d1116cc}
+  .mode.live{color:var(--green);border-color:#1f3a2c}
+  .mode.demo{color:var(--amber);border-color:#3a311c}
+  .mode b{display:inline-block;width:6px;height:6px;border-radius:50%;
+    background:currentColor;margin-right:7px;vertical-align:middle}
+
+  .side{background:var(--panel);border-left:1px solid var(--line);
+    display:flex;flex-direction:column;min-height:0;overflow-y:auto}
+  .head{padding:18px 22px 14px;border-bottom:1px solid var(--line)}
+  .head h1{margin:0;font-family:var(--disp);font-weight:700;font-size:18px;letter-spacing:.04em}
+  .head h1 span{color:var(--teal)}
+  .head .sub{margin-top:5px;font-family:var(--mono);font-size:11px;color:var(--dim)}
+
+  /* perf tiles */
+  .perf{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+    background:var(--line);border-bottom:1px solid var(--line)}
+  .tile{background:var(--panel);padding:11px 10px;text-align:center}
+  .tile .v{font-family:var(--disp);font-weight:700;font-size:17px;color:var(--teal)}
+  .tile .v.amber{color:var(--amber)}
+  .tile .k{font-family:var(--mono);font-size:9px;letter-spacing:.12em;
+    color:var(--dim);text-transform:uppercase;margin-top:3px}
+
+  .sec{padding:16px 22px;border-bottom:1px solid var(--line)}
+  .sec label{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;
+    color:var(--mut);text-transform:uppercase}
+  .row{display:flex;gap:8px;margin-top:9px}
+  input{flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+    border-radius:9px;padding:10px 13px;font-family:var(--body);font-size:14px;outline:none}
+  input:focus{border-color:var(--teal)}
+  button{font-family:var(--mono);font-size:12px;letter-spacing:.04em;border-radius:9px;
+    padding:10px 12px;cursor:pointer;border:1px solid var(--line);
+    background:var(--panel2);color:var(--ink);transition:.15s}
+  button:hover{border-color:var(--mut)}
+  .btns{display:flex;gap:8px;margin-top:10px}
+  button.go{flex:1;background:var(--teal);color:#04201c;border-color:var(--teal);font-weight:500}
+  button.go:hover{filter:brightness(1.08)}
+  button.nav{flex:1;background:var(--green);color:#04200e;border-color:var(--green);font-weight:500}
+  button.nav:hover{filter:brightness(1.08)}
+  button.find{flex:1}
+
+  .result{margin-top:13px;border:1px solid var(--line);border-radius:11px;
+    padding:12px;background:var(--panel2);display:none;gap:12px}
+  .result.show{display:flex}
+  .result.miss{border-color:#3a2420}
+  .result img{width:70px;height:54px;border-radius:7px;object-fit:cover;flex:none;
+    border:1px solid var(--line)}
+  .result .info{flex:1;min-width:0}
+  .result .rl{display:flex;justify-content:space-between;align-items:baseline}
+  .result .lab{font-family:var(--disp);font-weight:700;font-size:15px}
+  .result .sc{font-family:var(--mono);font-size:11px;color:var(--teal)}
+  .bar{height:5px;border-radius:3px;background:#0c1014;margin-top:8px;overflow:hidden}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,#2dd4bf,#57c98a)}
+  .result .cap{margin-top:7px;font-size:12px;color:var(--mut);line-height:1.45}
+  .result .xy{margin-top:6px;font-family:var(--mono);font-size:11px;color:var(--dim)}
+
+  /* command console */
+  .log{margin-top:11px;max-height:128px;overflow-y:auto;display:flex;
+    flex-direction:column;gap:7px;padding-right:2px}
+  .msg{font-size:12.5px;line-height:1.4;padding:7px 11px;border-radius:9px;max-width:92%}
+  .msg.you{align-self:flex-end;background:#1a2730;color:#cfe9e4;
+    font-family:var(--mono);font-size:12px}
+  .msg.bot{align-self:flex-start;background:var(--panel2);border:1px solid var(--line);color:var(--ink)}
+  .msg.bot b{color:var(--teal);font-weight:600}
+  .pad{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px}
+  .pad button{padding:9px 0;font-size:14px}
+  .pad button.stop{color:var(--red);border-color:#3a2420}
+
+  .plist{padding:8px 14px 16px}
+  .plist .ph{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--mut);
+    text-transform:uppercase;padding:12px 8px 8px}
+  .chip{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:11px;
+    border:1px solid transparent;transition:.15s}
+  .chip:hover{background:var(--panel2);border-color:var(--line)}
+  .chip img{width:50px;height:40px;border-radius:7px;object-fit:cover;flex:none;border:1px solid var(--line)}
+  .chip .meta{flex:1;min-width:0}
+  .chip .nm{font-weight:600;font-size:13.5px}
+  .chip .cp{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .chip .ct{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:1px}
+  .chip .acts{display:flex;gap:5px}
+  .chip button{padding:6px 9px;font-size:10.5px}
+  .empty{padding:24px 14px;color:var(--dim);font-size:12.5px;text-align:center;line-height:1.6}
+
+  .foot{position:sticky;bottom:0;border-top:1px solid var(--line);padding:12px 22px;
+    display:flex;justify-content:space-between;align-items:center;background:var(--panel);
+    font-family:var(--mono);font-size:11px;color:var(--mut)}
+  .badge{padding:4px 10px;border-radius:20px;font-size:10.5px;letter-spacing:.06em;border:1px solid var(--line)}
+  .badge.idle{color:var(--mut)}
+  .badge.navigating{color:var(--amber);border-color:#3a311c;background:#1c180e}
+  .badge.succeeded{color:var(--green);border-color:#1f3a2c;background:#0e1c14}
+  .badge.failed,.badge.rejected,.badge.nav2_unavailable{color:var(--red);border-color:#3a2420;background:#1c100e}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:#1d242d;border-radius:8px}
+
+  /* mission control */
+  .ctrl-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .lc{display:flex;align-items:center;justify-content:center;gap:8px}
+  .lc .dot{width:8px;height:8px;border-radius:50%;background:var(--dim);
+    display:inline-block;transition:.15s}
+  .lc.on{color:var(--green);border-color:#1f3a2c;background:#0e1c14}
+  .lc.on .dot{background:var(--green);box-shadow:0 0 6px var(--green)}
+  .lc.busy .dot{background:var(--amber);box-shadow:0 0 6px var(--amber)}
+  #saveMap{border-color:#3a311c;color:var(--amber)}
+  .ctrl-note{margin-top:9px;font-family:var(--mono);font-size:11px;
+    color:var(--dim);min-height:14px;line-height:1.4}
+</style>
+</head>
+<body>
+  <div class="stage">
+    <canvas id="map"></canvas>
+    <div class="stage-tag">SEMANTIC MAP · MAP FRAME</div>
+    <div class="mode" id="mode"><b></b><span>connecting…</span></div>
+    <div class="legend">
+      <span><i style="background:var(--teal)"></i>robot / place</span>
+      <span><i style="background:var(--amber)"></i>goal</span>
+      <span><i style="background:#57c98a"></i>RRT plan (if available)</span>
+      <span><i style="background:#aab8c7"></i>wall</span>
+      <span><i style="background:#1b242e;border:1px solid #2a3744"></i>explored floor</span>
+    </div>
+  </div>
+
+  <aside class="side">
+    <div class="head">
+      <h1>SEMANTIC<span>·</span>NAV</h1>
+      <div class="sub" id="emb">embedder: —</div>
+    </div>
+
+    <div class="perf">
+      <div class="tile"><div class="v" id="pSpd">0.00</div><div class="k">m/s</div></div>
+      <div class="tile"><div class="v amber" id="pAng">0.00</div><div class="k">rad/s</div></div>
+      <div class="tile"><div class="v" id="pDist">0.0</div><div class="k">dist m</div></div>
+      <div class="tile"><div class="v" id="pPk">0.00</div><div class="k">peak</div></div>
+    </div>
+
+    <div class="sec">
+      <label>Mission control</label>
+      <div id="mapStatusBar" class="ctrl-note" style="margin-bottom:8px">Checking saved maps…</div>
+      <div class="ctrl-grid">
+        <button class="lc" data-k="explore"><b class="dot"></b>Explore + map</button>
+        <button class="lc" id="btnLocalize" data-k="localize" disabled title="Save a map first"><b class="dot"></b>Localize</button>
+        <button class="lc" data-k="semantic"><b class="dot"></b>Semantic</button>
+        <button id="saveMap">Save map</button>
+      </div>
+      <div style="margin-top:6px">
+        <button id="clearSemantic" style="width:100%;font-size:11px;padding:5px 0;border-color:#3a1c1c;color:#e07070">Clear semantic places</button>
+      </div>
+      <div class="ctrl-note" id="ctrlNote">—</div>
+    </div>
+
+    <div class="sec">
+      <label>Ask for a place</label>
+      <div class="row"><input id="qin" placeholder="where can I wash my hands?" autocomplete="off"></div>
+      <div class="btns">
+        <button class="find" id="findBtn">FIND</button>
+        <button class="go" id="planBtn">PLAN →</button>
+        <button class="nav" id="goBtn">GO ▶</button>
+      </div>
+      <div class="result" id="res">
+        <img id="resImg" alt="">
+        <div class="info">
+          <div class="rl"><span class="lab" id="resLab"></span><span class="sc" id="resSc"></span></div>
+          <div class="bar"><i id="resBar"></i></div>
+          <div class="cap" id="resCap"></div>
+          <div class="xy" id="resXy"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <label>Command console · type casually</label>
+      <div class="log" id="log">
+        <div class="msg bot">Try <b>"go to the kitchen"</b>, <b>"plan a path to the meeting room"</b>, <b>"move forward"</b>, or <b>"spin around"</b>.</div>
+      </div>
+      <div class="row"><input id="cin" placeholder="tell the robot what to do…" autocomplete="off"></div>
+      <div class="pad">
+        <button onclick="cmd('turn left')" title="turn left">↺</button>
+        <button onclick="cmd('move forward')" title="forward">↑</button>
+        <button onclick="cmd('turn right')" title="turn right">↻</button>
+        <button onclick="cmd('move back')" title="back">↓</button>
+        <button class="stop" onclick="cmd('stop')" title="stop">■</button>
+      </div>
+    </div>
+
+    <div class="plist">
+      <div class="ph">Remembered places · <span id="pcount">0</span></div>
+      <div id="chips"></div>
+    </div>
+
+    <div class="foot">
+      <span id="pose">pose —</span>
+      <span class="badge idle" id="nav">IDLE</span>
+    </div>
+  </aside>
+
+<script>
+const $=s=>document.querySelector(s);
+const canvas=$("#map"), ctx=canvas.getContext("2d");
+let state={places:[],robot:null,nav_state:"idle",nav_target:null,map:null,
+  path:[],perf:{linear:0,angular:0,distance:0,max_speed:0},embedder:"—"};
+let live=false;
+
+/* thumbnails (same scheme as the backend mock) */
+const TINTS={bathroom:["#1d9e75","#0f6e56"],kitchen:["#e0a23b","#854f0b"],
+ "meeting room":["#7f77dd","#3c3489"],office:["#378add","#0c447c"],
+ entrance:["#d85a30","#712b13"]};
+function thumb(label){
+ const [c1,c2]=TINTS[label]||["#5f5e5a","#2c2c2a"];
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="120" height="90">`+
+  `<rect width="120" height="90" fill="${c2}"/><rect width="120" height="58" fill="${c1}"/>`+
+  `<circle cx="60" cy="30" r="16" fill="#fff" opacity="0.85"/>`+
+  `<text x="60" y="78" font-family="monospace" font-size="12" fill="#fff" text-anchor="middle">${label}</text></svg>`;
+ return "data:image/svg+xml;base64,"+btoa(svg);
+}
+
+/* ---------- demo fallback ---------- */
+const DC={bathroom:["bathroom","toilet","washroom","restroom","sink","wash","hands","loo"],
+ kitchen:["kitchen","pantry","fridge","coffee","food","eat","snack","cook"],
+ meeting:["meeting","conference","boardroom","presentation","discuss","standup","screen"],
+ office:["office","desk","work","computer","study","workspace","sit"],
+ entrance:["entrance","entry","door","lobby","reception","hallway","hall","exit","out","leave"]};
+const DP=[
+ {id:0,label:"bathroom",caption:"a bathroom with a toilet and sink",x:2.6,y:1.8,theta:0,count:6,concept:"bathroom"},
+ {id:1,label:"kitchen",caption:"a kitchen pantry with a fridge and coffee machine",x:-2.4,y:1.9,theta:3.1,count:7,concept:"kitchen"},
+ {id:2,label:"meeting room",caption:"a meeting room with a long table and a screen",x:-2.2,y:-2.1,theta:1.57,count:5,concept:"meeting"},
+ {id:3,label:"office",caption:"an open office area with desks and monitors",x:2.3,y:-2.0,theta:-1.57,count:8,concept:"office"},
+ {id:4,label:"entrance",caption:"the building entrance and reception lobby",x:0,y:-3.2,theta:1.57,count:4,concept:"entrance"}];
+DP.forEach(p=>p.image=thumb(p.label));
+function demoMatch(q){
+ const t=new Set((q.toLowerCase().match(/[a-z]+/g)||[]));let best=null,bs=0;
+ for(const p of DP){const tr=new Set(DC[p.concept]||[]);let s=0;t.forEach(w=>{if(tr.has(w))s++});
+   s=s/Math.sqrt(t.size||1);if(s>bs){bs=s;best=p;}}
+ if(!best||bs<=0)return{found:false,score:0,query:q};
+ return{found:true,query:q,label:best.label,caption:best.caption,image:best.image,
+  score:Math.min(0.99,0.45+bs*0.3),x:best.x,y:best.y,theta:best.theta};
+}
+let demoRobot={x:0,y:-3.0,theta:1.57}, demoTarget=null, demoVel=null, demoPath=null;
+function startDemo(){
+ if(live)return;
+ const el=$("#mode");el.className="mode demo";
+ el.querySelector("span").textContent="DEMO MODE · no backend";
+ state.embedder="concept-fallback (demo)";state.places=DP;state.robot=demoRobot;
+ $("#emb").textContent="embedder: concept-fallback (demo)";renderSide();
+ let last=performance.now();
+ setInterval(()=>{
+  const now=performance.now(),dt=(now-last)/1000;last=now;let moved=0;
+  if(demoVel&&now<demoVel.until){
+    demoRobot.theta+=demoVel.ang*dt;
+    const ddx=Math.cos(demoRobot.theta)*demoVel.lin*dt, ddy=Math.sin(demoRobot.theta)*demoVel.lin*dt;
+    demoRobot.x+=ddx;demoRobot.y+=ddy;moved=Math.hypot(ddx,ddy);
+    state.perf.linear=demoVel.lin;state.perf.angular=demoVel.ang;state.nav_state="navigating";
+  } else if(demoTarget){
+    const dx=demoTarget.x-demoRobot.x,dy=demoTarget.y-demoRobot.y,d=Math.hypot(dx,dy);
+    if(d<0.06){state.nav_state="succeeded";demoTarget=null;state.perf.linear=0;}
+    else{const sp=0.6;const st=Math.min(sp*dt,d);demoRobot.x+=dx/d*st;demoRobot.y+=dy/d*st;
+      demoRobot.theta=Math.atan2(dy,dx);moved=st;state.perf.linear=sp;state.nav_state="navigating";}
+  } else {state.perf.linear=0;state.perf.angular=0;}
+  state.perf.distance=+(state.perf.distance+moved).toFixed(2);
+  state.perf.max_speed=Math.max(state.perf.max_speed,Math.abs(state.perf.linear));
+  renderSide();
+ },50);
+}
+function demoCommand(text){
+ const t=text.toLowerCase();
+ const set=(lin,ang,dur)=>{demoVel={lin,ang,until:performance.now()+dur*1000};demoTarget=null;};
+ if(/stop|halt|freeze|wait/.test(t)){demoVel=null;demoTarget=null;state.perf.linear=0;state.perf.angular=0;return"Stopping the robot.";}
+ if(/spin|rotate|turn around/.test(t)){set(0,0.9,2.5);return"Spinning in place.";}
+ if(/left/.test(t)){set(0,0.9,1.2);return"Turning left.";}
+ if(/right/.test(t)){set(0,-0.9,1.2);return"Turning right.";}
+ if(/back|reverse/.test(t)){set(-0.18,0,1.2);return"Backing up.";}
+ if(/forward|ahead|straight/.test(t)){set(0.18,0,1.2);return"Moving forward.";}
+ const plan=/plan|rrt|route|trajectory/.test(t);
+ const m=demoMatch(text);
+ if(!m.found)return"I couldn't match that to a place or a movement command.";
+ showResult(m);
+ demoPath=makeDemoPath(demoRobot,m);
+ if(plan){
+   demoTarget=null;return"Planning an RRT path to the "+m.label+".";
+ } else {
+   demoTarget={x:m.x,y:m.y};return"Navigating to the "+m.label+".";
+ }
+}
+function makeDemoPath(a,b){ // fake RRT-ish zigzag
+ const pts=[[a.x,a.y]];const n=5;
+ for(let i=1;i<n;i++){const t=i/n;
+   pts.push([a.x+(b.x-a.x)*t+(Math.random()-0.5)*0.6, a.y+(b.y-a.y)*t+(Math.random()-0.5)*0.6]);}
+ pts.push([b.x,b.y]);return pts;
+}
+
+/* ---------- backend wiring ---------- */
+function connect(){
+ try{
+  const ws=new WebSocket((location.protocol==="https:"?"wss":"ws")+"://"+location.host+"/ws");
+  ws.onmessage=e=>{
+    live=true;
+    const d=JSON.parse(e.data);
+    // Don't use Object.assign — it destroys existing keys not in d (like map).
+    // Instead merge selectively.
+    state.robot=d.robot||state.robot;
+    state.nav_state=d.nav_state||state.nav_state;
+    state.nav_target=d.nav_target||state.nav_target;
+    state.places=d.places||state.places;
+    state.path=(d.path!==undefined&&d.path!==null)?d.path:state.path;
+    state.perf=d.perf||state.perf;
+    state.n_places=d.n_places||state.n_places;
+    state.embedder=d.embedder||state.embedder;
+    const el=$("#mode");el.className="mode live";el.querySelector("span").textContent="LIVE · connected";
+    $("#emb").textContent="embedder: "+(d.embedder||"—");
+    // Fetch /api/map when the version changes (but retry on failure).
+    if(d.map_changed){
+      const fetchMapRetry=(retries=3)=>{
+        fetch("/api/map").then(r=>{
+          if(!r.ok)throw new Error(`HTTP ${r.status}`);
+          return r.json();
+        }).then(m=>{
+          if(m && m.w && m.h){
+            state.map=m;
+            _view=null;
+            console.log(`[map] loaded ${m.w}×${m.h} cells`);
+          }
+        }).catch(e=>{
+          console.warn(`[map] fetch failed: ${e.message}`);
+          if(retries>0)setTimeout(()=>fetchMapRetry(retries-1), 500);
+          else console.warn("[map] gave up after retries");
+        });
+      };
+      fetchMapRetry();
+    }
+    renderSide();
+  };
+  ws.onclose=()=>{live=false;};
+ }catch(e){}
+ setTimeout(()=>{if(!live)startDemo();},2200);
+}
+async function post(p,b){const r=await fetch(p,{method:"POST",
+ headers:{"Content-Type":"application/json"},body:JSON.stringify(b)});return r.json();}
+
+async function doFind(){const q=$("#qin").value.trim();if(!q)return;
+ showResult(live?await post("/api/query",{query:q}):demoMatch(q));}
+async function doPlan(q){
+ q=q||$("#qin").value.trim();if(!q)return;
+ const btn=$("#planBtn");btn.textContent="PLANNING…";btn.disabled=true;
+ try{
+  if(live){
+    const m=await post("/api/goto",{query:q});
+    showResult(m);
+    // Show goal dot immediately (don't wait for next WS tick)
+    if(m.found){state.nav_target={x:m.x,y:m.y};}
+    logMsg(m.say||("found: "+m.label),"bot");
+  } else {
+    const m=demoMatch(q);showResult(m);
+    if(m.found){demoPath=makeDemoPath(demoRobot,m);demoTarget=null;demoVel=null;
+      logMsg("Planning RRT path to the "+m.label+".","bot");}
+    else{logMsg("No match found.","bot");}
+  }
+ } finally {btn.textContent="PLAN →";btn.disabled=false;}
+}
+async function doNavigate(q){
+ q=q||$("#qin").value.trim();if(!q)return;
+ const btn=$("#goBtn");btn.textContent="GOING…";btn.disabled=true;
+ try{
+  if(live){
+    const m=await post("/api/navigate",{query:q});
+    showResult(m);
+    if(m.found){state.nav_target={x:m.x,y:m.y};}
+    logMsg(m.say||("navigating to: "+m.label),"bot");
+  } else {
+    const m=demoMatch(q);showResult(m);
+    if(m.found){demoPath=makeDemoPath(demoRobot,m);demoTarget={x:m.x,y:m.y};demoVel=null;
+      logMsg("Navigating to the "+m.label+".","bot");}
+    else{logMsg("No match found.","bot");}
+  }
+ } finally {btn.textContent="GO ▶";btn.disabled=false;}
+}
+// keep doGo as alias for doPlan (backward-compat for console commands)
+async function doGo(q){return doPlan(q);}
+async function cmd(text){
+ text=text||$("#cin").value.trim();if(!text)return;
+ logMsg(text,"you");$("#cin").value="";
+ let say;
+ if(live){const r=await post("/api/command",{text});say=r.say||"ok";
+   if(r.found&&(r.action==="goto"||r.action==="plan"))showResult(r);}
+ else{say=demoCommand(text);}
+ logMsg(say,"bot");
+}
+function logMsg(text,who){const l=$("#log");const d=document.createElement("div");
+ d.className="msg "+who;d.textContent=text;l.appendChild(d);l.scrollTop=l.scrollHeight;}
+
+function showResult(m){const r=$("#res");r.classList.add("show");
+ if(!m.found){r.classList.add("miss");$("#resImg").style.display="none";
+  $("#resLab").textContent="no match";$("#resSc").textContent="score "+(m.score||0).toFixed(2);
+  $("#resBar").style.width="0%";$("#resCap").textContent="Nothing in memory is close enough.";
+  $("#resXy").textContent="";return;}
+ r.classList.remove("miss");
+ const img=$("#resImg");img.style.display="block";img.src=m.image||thumb(m.label);
+ $("#resLab").textContent=m.label;$("#resSc").textContent="score "+m.score.toFixed(2);
+ $("#resBar").style.width=Math.round(m.score*100)+"%";$("#resCap").textContent=m.caption||"";
+ $("#resXy").textContent="→ ("+m.x.toFixed(2)+", "+m.y.toFixed(2)+") m";}
+
+function renderSide(){
+ const pf=state.perf||{};
+ $("#pSpd").textContent=(pf.linear||0).toFixed(2);
+ $("#pAng").textContent=(pf.angular||0).toFixed(2);
+ $("#pDist").textContent=(pf.distance||0).toFixed(1);
+ $("#pPk").textContent=(pf.max_speed||0).toFixed(2);
+ $("#pcount").textContent=state.places.length;
+ const c=$("#chips");
+ if(!state.places.length){c.innerHTML='<div class="empty">No places tagged yet.<br>Run exploration so the robot can build its memory.</div>';}
+ else{c.innerHTML=state.places.map(p=>`
+   <div class="chip">
+     <img src="${p.image||thumb(p.label)}" alt="">
+     <div class="meta"><div class="nm">${esc(p.label)}</div>
+       <div class="cp">${esc(p.caption||"")}</div>
+       <div class="ct">${p.count||1} obs · (${p.x.toFixed(1)}, ${p.y.toFixed(1)})</div></div>
+     <div class="acts">
+       <button onclick="cmd('plan a path to ${esc(p.label)}')">PLAN</button>
+       <button onclick="doNavigate('${esc(p.label)}')">GO</button></div>
+   </div>`).join("");}
+ const nav=$("#nav");nav.className="badge "+(state.nav_state||"idle");
+ nav.textContent=(state.nav_state||"idle").replace(/_/g," ").toUpperCase();
+ $("#pose").textContent=state.robot?`pose (${state.robot.x.toFixed(2)}, ${state.robot.y.toFixed(2)})`:"pose —";
+}
+function esc(s){return(s+"").replace(/[<>&'"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;","'":"&#39;",'"':"&quot;"}[c]));}
+
+/* ---------- canvas ---------- */
+function fit(){const r=canvas.parentElement.getBoundingClientRect();
+ canvas.width=r.width*devicePixelRatio;canvas.height=r.height*devicePixelRatio;
+ ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);_view=null;}
+addEventListener("resize",fit);
+function boundsFor(){
+ if(state.map&&state.map.w&&state.map.h){const m=state.map;
+   return{minx:m.origin_x,miny:m.origin_y,
+     maxx:m.origin_x+m.w*m.resolution,maxy:m.origin_y+m.h*m.resolution};}
+ let xs=state.places.map(p=>p.x),ys=state.places.map(p=>p.y);
+ if(state.robot){xs.push(state.robot.x);ys.push(state.robot.y);}
+ if(!xs.length)return{minx:-5,miny:-5,maxx:5,maxy:5};
+ const pad=2;return{minx:Math.min(...xs)-pad,miny:Math.min(...ys)-pad,
+   maxx:Math.max(...xs)+pad,maxy:Math.max(...ys)+pad};}
+let _view=null,_sig="";
+function viewFor(w,h){
+ const b=boundsFor();
+ /* round the signature to 0.5 m so small map growth doesn't rescale
+    (and re-blink) the whole view every update */
+ const sig=[w|0,h|0,Math.round(b.minx*2),Math.round(b.miny*2),
+   Math.round(b.maxx*2),Math.round(b.maxy*2)].join(",");
+ if(_view&&sig===_sig)return _view;
+ _sig=sig;
+ const s=Math.min(w/(b.maxx-b.minx),h/(b.maxy-b.miny))*0.9;
+ const ox=(w-(b.maxx-b.minx)*s)/2,oy=(h-(b.maxy-b.miny)*s)/2;
+ _view={s,b,X:wx=>ox+(wx-b.minx)*s,Y:wy=>h-(oy+(wy-b.miny)*s)};
+ return _view;}
+function draw(){
+ const w=canvas.width/devicePixelRatio,h=canvas.height/devicePixelRatio;ctx.clearRect(0,0,w,h);
+ const v=viewFor(w,h),b=v.b,s=v.s,X=v.X,Y=v.Y;
+ if(state.map&&state.map.cells){const m=state.map,cs=Math.ceil(m.resolution*s)+1;
+   for(let j=0;j<m.h;j++)for(let i=0;i<m.w;i++){
+     const val=m.cells[j*m.w+i];let col;
+     if(val>=65)col="#aab8c7";          // wall
+     else if(val>=0)col="#1b242e";      // explored floor
+     else continue;                      // unknown -> background
+     ctx.fillStyle=col;
+     ctx.fillRect(X(m.origin_x+i*m.resolution),
+       Y(m.origin_y+(j+1)*m.resolution),cs,cs);}}
+ else{ctx.strokeStyle="#161c23";ctx.lineWidth=1;
+   for(let gx=Math.ceil(b.minx);gx<b.maxx;gx++){ctx.beginPath();ctx.moveTo(X(gx),0);ctx.lineTo(X(gx),h);ctx.stroke();}
+   for(let gy=Math.ceil(b.miny);gy<b.maxy;gy++){ctx.beginPath();ctx.moveTo(0,Y(gy));ctx.lineTo(w,Y(gy));ctx.stroke();}
+   ctx.strokeStyle="#2a3744";ctx.lineWidth=2;
+   ctx.strokeRect(X(b.minx+1.1),Y(b.maxy-1.1),(b.maxx-b.minx-2.2)*s,(b.maxy-b.miny-2.2)*s);}
+ // RRT / planned path
+ const path=live?state.path:demoPath;
+ if(path&&path.length>1){
+   ctx.strokeStyle="#57c98a";ctx.lineWidth=2.5;ctx.beginPath();
+   ctx.moveTo(X(path[0][0]),Y(path[0][1]));
+   for(const p of path)ctx.lineTo(X(p[0]),Y(p[1]));ctx.stroke();
+   ctx.fillStyle="#57c98a";for(const p of path){ctx.beginPath();ctx.arc(X(p[0]),Y(p[1]),2.5,0,7);ctx.fill();}}
+ const tgt=live?state.nav_target:demoTarget;
+ if(tgt){ctx.fillStyle="#e0a23b";ctx.beginPath();ctx.arc(X(tgt.x),Y(tgt.y),7,0,7);ctx.fill();
+   ctx.strokeStyle="#e0a23b88";ctx.lineWidth=2;ctx.beginPath();ctx.arc(X(tgt.x),Y(tgt.y),13,0,7);ctx.stroke();}
+ for(const p of state.places){ctx.fillStyle="#2dd4bf22";ctx.beginPath();ctx.arc(X(p.x),Y(p.y),12,0,7);ctx.fill();
+   ctx.fillStyle="#2dd4bf";ctx.beginPath();ctx.arc(X(p.x),Y(p.y),5,0,7);ctx.fill();
+   ctx.fillStyle="#cfd8e0";ctx.font="600 12px Sora,sans-serif";ctx.textAlign="center";ctx.fillText(p.label,X(p.x),Y(p.y)-14);}
+ const rb=state.robot;
+ if(rb){const px=X(rb.x),py=Y(rb.y);ctx.save();ctx.translate(px,py);ctx.rotate(-rb.theta);
+   ctx.fillStyle="#2dd4bf";ctx.beginPath();ctx.moveTo(11,0);ctx.lineTo(-7,7);ctx.lineTo(-7,-7);ctx.closePath();ctx.fill();ctx.restore();
+   ctx.strokeStyle="#2dd4bf44";ctx.lineWidth=2;ctx.beginPath();ctx.arc(px,py,15,0,7);ctx.stroke();}
+ requestAnimationFrame(draw);
+}
+
+/* ---------- mission control (lifecycle) ---------- */
+
+// Map status: check whether house_map.yaml + semantic_map.json exist
+async function refreshMapStatus() {
+  if (!live) {
+    $("#mapStatusBar").textContent = "Connect to backend to check map status.";
+    $("#btnLocalize").disabled = true;
+    return;
+  }
+  try {
+    const s = await (await fetch("/api/map_status")).json();
+    const bar = $("#mapStatusBar");
+    const btnL = $("#btnLocalize");
+    if (s.nav_map_ready) {
+      const semPart = s.sem_map_ready
+        ? ` · ${s.sem_map_places} semantic place${s.sem_map_places !== 1 ? "s" : ""} saved`
+        : " · no semantic places yet";
+      bar.textContent = "✓ Map saved: " + s.nav_map_path + semPart;
+      bar.style.color = "var(--green)";
+      btnL.disabled = false;
+      btnL.title = "Localize on " + s.nav_map_path;
+    } else {
+      bar.textContent = "⚠ No map saved — run Explore + map and Save map first.";
+      bar.style.color = "var(--amber)";
+      btnL.disabled = true;
+      btnL.title = "No map saved — explore and save first";
+    }
+  } catch(e) {
+    $("#mapStatusBar").textContent = "Could not reach backend.";
+  }
+}
+
+async function refreshProcs(){
+  if(!live){
+    document.querySelectorAll(".lc").forEach(b=>b.classList.remove("on","busy"));
+    return;
+  }
+  try{
+    const r=await(await fetch("/api/processes")).json();
+    (r.processes||[]).forEach(p=>{
+      const b=document.querySelector('.lc[data-k="'+p.key+'"]');
+      if(b){b.classList.toggle("on",!!p.running);b.classList.remove("busy");}
+    });
+  }catch(e){}
+}
+async function toggleProc(key,btn){
+  const running=btn.classList.contains("on");
+  btn.classList.add("busy");
+  $("#ctrlNote").textContent=(running?"Stopping ":"Starting ")+key+"…";
+  try{
+    const r=await post(running?"/api/stop":"/api/launch",{target:key});
+    if(r.error){$("#ctrlNote").textContent="error: "+r.error;}
+    else if(running){$("#ctrlNote").textContent=key+" stopped.";}
+    else if(key==="explore"){
+      $("#ctrlNote").textContent="Exploring — sim + nav take ~40 s to come up. Semantic places cleared for fresh run.";
+      refreshMapStatus();
+    } else if(key==="localize"){
+      $("#ctrlNote").textContent="Localizing — initial pose auto-set at spawn point (x=5.0, y=0.0). Robot should appear on map in ~35 s.";
+    } else {
+      $("#ctrlNote").textContent=key+" starting…";
+    }
+  }catch(e){$("#ctrlNote").textContent="request failed: "+e;}
+  setTimeout(refreshProcs,900);
+}
+document.querySelectorAll(".lc").forEach(b=>b.addEventListener("click",()=>{
+  if(!live){$("#ctrlNote").textContent="No backend — run the web_backend node first.";return;}
+  toggleProc(b.dataset.k,b);
+}));
+$("#saveMap").addEventListener("click",async()=>{
+  if(!live){$("#ctrlNote").textContent="No backend connected.";return;}
+  $("#ctrlNote").textContent="Saving map to ~/house_map …";
+  try{
+    const r=await post("/api/save_map",{name:"house_map"});
+    if(r.ok){
+      $("#ctrlNote").textContent="Saved → "+r.path;
+      refreshMapStatus();
+    } else {
+      $("#ctrlNote").textContent="Save failed: "+(r.error||"check that /map is published");
+    }
+  }catch(e){$("#ctrlNote").textContent="save request failed: "+e;}
+});
+$("#clearSemantic").addEventListener("click",async()=>{
+  if(!live){$("#ctrlNote").textContent="No backend connected.";return;}
+  if(!confirm("Clear all semantic places? This cannot be undone."))return;
+  try{
+    const r=await post("/api/clear_semantic",{});
+    $("#ctrlNote").textContent=r.ok?"Semantic places cleared.":"Clear failed: "+r.error;
+    refreshMapStatus();
+  }catch(e){$("#ctrlNote").textContent="clear request failed: "+e;}
+});
+
+setInterval(refreshProcs,1500);
+setInterval(refreshMapStatus,5000);
+refreshProcs();
+refreshMapStatus();
+
+$("#findBtn").onclick=doFind;
+$("#planBtn").onclick=()=>doPlan();
+$("#goBtn").onclick=()=>doNavigate();
+$("#qin").addEventListener("keydown",e=>{if(e.key==="Enter")doPlan();});
+$("#cin").addEventListener("keydown",e=>{if(e.key==="Enter")cmd();});
+fit();draw();renderSide();connect();
+</script>
+</body>
+</html>
